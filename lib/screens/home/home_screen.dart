@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +18,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _bt = AppBluetoothService.instance;
 
   BluetoothService? service;
-  BluetoothCharacteristic? characteristic;
+  BluetoothCharacteristic? rxCharacteristic;
+  BluetoothCharacteristic? txCharacteristic;
+  StreamSubscription<List<int>>? _txSubscription;
 
   Future<void> _loadServices(BluetoothDevice device) async {
     try {
@@ -24,21 +28,52 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
       if (!mounted || services.isEmpty) return;
 
-      final loadedService = services.firstWhere(
-        (s) => s.uuid.str128 == "12345678-1234-1234-1234-123456789000",
+      debugPrint(
+        "Discovered services: ${services.map((s) => s.uuid.str128).toList()}",
       );
 
-      final loadedCharacteristic = loadedService.characteristics.firstWhere(
-        (c) => c.uuid.str128 == "12345678-1234-1234-1234-123456789001",
+      final loadedService = services.firstWhere(
+        (s) => s.uuid.str128 == AppBluetoothService.serviceUuid,
       );
+
+      debugPrint(
+        "Discovered characteristics: "
+        "${loadedService.characteristics.map((c) => c.uuid.str128).toList()}",
+      );
+
+      final loadedRxCharacteristic = loadedService.characteristics.firstWhere(
+        (c) => c.uuid.str128 == AppBluetoothService.rxCharacteristicUuid,
+      );
+
+      final loadedTxCharacteristic = loadedService.characteristics.firstWhere(
+        (c) => c.uuid.str128 == AppBluetoothService.txCharacteristicUuid,
+      );
+
+      await loadedTxCharacteristic.setNotifyValue(true);
+      await _txSubscription?.cancel();
+
+      _txSubscription = loadedTxCharacteristic.lastValueStream.listen((value) {
+        debugPrint("BLE notify: ${String.fromCharCodes(value)}");
+      });
 
       setState(() {
         service = loadedService;
-        characteristic = loadedCharacteristic;
+        rxCharacteristic = loadedRxCharacteristic;
+        txCharacteristic = loadedTxCharacteristic;
       });
+
+      await loadedRxCharacteristic.write("settings:setup_completed".codeUnits);
     } catch (e) {
       debugPrint("Failed to discover services: $e");
-    }
+    } 
+  }
+
+  
+
+  @override
+  void dispose() {
+    _txSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -50,9 +85,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           previous?.connectedDevice?.remoteId != device.remoteId) {
         _loadServices(device);
       } else if (device == null && previous?.connectedDevice != null) {
+        _txSubscription?.cancel();
         setState(() {
           service = null;
-          characteristic = null;
+          rxCharacteristic = null;
+          txCharacteristic = null;
         });
       }
     });
@@ -101,20 +138,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: characteristic == null
+                      onPressed: rxCharacteristic == null
                           ? null
                           : () async {
-                              await characteristic!.write("LED_ON".codeUnits);
+                              await rxCharacteristic!.write(
+                                "led:on".codeUnits,
+                              );
                             },
                       child: const Text("ON"),
                     ),
                     const SizedBox(width: 16),
                     ElevatedButton(
-                      onPressed: characteristic == null
+                      onPressed: rxCharacteristic == null
                           ? null
                           : () async {
-                              await characteristic!.write(
-                                "LED_OFF".codeUnits,
+                              await rxCharacteristic!.write(
+                                "led:off".codeUnits,
                               );
                             },
                       child: const Text("OFF"),

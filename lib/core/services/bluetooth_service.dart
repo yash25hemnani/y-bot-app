@@ -6,6 +6,12 @@ class AppBluetoothService {
 
   static final AppBluetoothService instance = AppBluetoothService._();
 
+  static const String serviceUuid = "12345678-1234-1234-1234-1234567890ab";
+  static const String rxCharacteristicUuid =
+      "12345678-1234-1234-1234-1234567890cd";
+  static const String txCharacteristicUuid =
+      "12345678-1234-1234-1234-1234567890ce";
+
   Stream<List<ScanResult>> get scanResults => FlutterBluePlus.scanResults;
 
   Future<bool> startScan({
