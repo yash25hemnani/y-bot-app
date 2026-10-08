@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:y_bot_app/core/providers/bluetooth_connection_provider.dart';
 import 'package:y_bot_app/core/services/bluetooth_service.dart';
 import 'package:y_bot_app/screens/bluetooth/bluetooth_screen.dart';
+import 'package:y_bot_app/screens/controller_pad/controller_pad_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -159,6 +160,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: const Text("OFF"),
                     ),
                   ],
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ControllerPadScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text("Controller Pad"),
                 ),
               ],
             ),
