@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:y_bot_app/screens/bluetooth/bluetooth_screen.dart';
-import 'package:y_bot_app/screens/devices/devices_screen.dart';
-import 'package:y_bot_app/screens/history/history_screen.dart';
-import 'package:y_bot_app/screens/home/home_screen.dart';
-import 'package:y_bot_app/screens/settings/settings_screen.dart';
+import 'package:y_bot_app/features/bluetooth/screens/bluetooth_screen.dart';
+import 'package:y_bot_app/features/devices/screens/devices_screen.dart';
+import 'package:y_bot_app/features/history/screens/history_screen.dart';
+import 'package:y_bot_app/features/home/screens/home_screen.dart';
+import 'package:y_bot_app/features/settings/screens/settings_screen.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});

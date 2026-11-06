@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:y_bot_app/core/providers/bluetooth_connection_provider.dart';
-import 'package:y_bot_app/core/services/bluetooth_service.dart';
-import 'package:y_bot_app/screens/bluetooth/bluetooth_screen.dart';
-import 'package:y_bot_app/screens/controller_pad/controller_pad_screen.dart';
+import 'package:y_bot_app/features/bluetooth/providers/bluetooth_connection_provider.dart';
+import 'package:y_bot_app/features/bluetooth/services/bluetooth_service.dart';
+import 'package:y_bot_app/features/bluetooth/screens/bluetooth_screen.dart';
+import 'package:y_bot_app/features/controller_pad/screens/controller_pad_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});

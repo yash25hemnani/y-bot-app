@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:y_bot_app/core/providers/bluetooth_connection_provider.dart';
-import 'package:y_bot_app/core/services/bluetooth_service.dart';
+import 'package:y_bot_app/features/bluetooth/providers/bluetooth_connection_provider.dart';
+import 'package:y_bot_app/features/bluetooth/services/bluetooth_service.dart';
 
 class ControllerPadScreen extends ConsumerStatefulWidget {
   const ControllerPadScreen({super.key});

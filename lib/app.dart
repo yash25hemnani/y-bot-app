@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:y_bot_app/core/theme/app_theme.dart';
-import 'package:y_bot_app/screens/root/root_screen.dart';
+import 'package:y_bot_app/core/layout/root_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:y_bot_app/core/services/permission_service.dart';
+import 'package:y_bot_app/features/bluetooth/services/permission_service.dart';
 
 class AppBluetoothService {
   AppBluetoothService._();
