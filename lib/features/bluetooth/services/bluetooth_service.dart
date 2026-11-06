@@ -14,6 +14,8 @@ class AppBluetoothService {
 
   Stream<List<ScanResult>> get scanResults => FlutterBluePlus.scanResults;
 
+  Stream<bool> get isScanning => FlutterBluePlus.isScanning;
+
   Future<bool> startScan({
     Duration timeout = const Duration(seconds: 8),
   }) async {
@@ -49,6 +51,4 @@ class AppBluetoothService {
 
   Future<List<BluetoothService>> discoverServices(BluetoothDevice device) =>
       device.discoverServices();
-
-  
 }

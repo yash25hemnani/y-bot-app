@@ -10,9 +10,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Y-BOT',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      theme: AppTheme.dark,
       home: const RootScreen(),
     );
   }

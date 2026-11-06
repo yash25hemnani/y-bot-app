@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:y_bot_app/core/theme/app_colors.dart';
+import 'package:y_bot_app/core/widgets/pulsing_icon.dart';
 import 'package:y_bot_app/features/bluetooth/providers/bluetooth_connection_provider.dart';
 import 'package:y_bot_app/features/bluetooth/services/bluetooth_service.dart';
 import 'package:y_bot_app/features/bluetooth/services/permission_service.dart';
@@ -15,16 +19,22 @@ class BluetoothScreen extends ConsumerStatefulWidget {
 class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
   final _bt = AppBluetoothService.instance;
   List<ScanResult> _results = [];
+  bool _isScanning = false;
+  late final StreamSubscription<List<ScanResult>> _resultsSub;
+  late final StreamSubscription<bool> _scanningSub;
 
   @override
   void initState() {
     super.initState();
 
-    _bt.startScan();
-
-    _bt.scanResults.listen((results) {
-      setState(() => _results = results);
+    _resultsSub = _bt.scanResults.listen((results) {
+      if (mounted) setState(() => _results = results);
     });
+    _scanningSub = _bt.isScanning.listen((scanning) {
+      if (mounted) setState(() => _isScanning = scanning);
+    });
+
+    _onScanPressed();
   }
 
   Future<void> _onScanPressed() async {
@@ -50,10 +60,13 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
       return;
     }
 
-    final previousDevice = ref.read(bluetoothConnectionProvider).connectedDevice;
+    final previousDevice = ref
+        .read(bluetoothConnectionProvider)
+        .connectedDevice;
     if (previousDevice != null) {
       await _disconnect(previousDevice);
     }
+    if (!mounted) return;
 
     final shouldConnect = await showConnectConfirmDialog(context);
 
@@ -129,6 +142,8 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
 
   @override
   void dispose() {
+    _resultsSub.cancel();
+    _scanningSub.cancel();
     _bt.stopScan();
     super.dispose();
   }
@@ -142,7 +157,10 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel", style: TextStyle(color: Colors.white)),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -162,7 +180,10 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel", style: TextStyle(color: Colors.white)),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -176,57 +197,169 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
   @override
   Widget build(BuildContext context) {
     final connection = ref.watch(bluetoothConnectionProvider);
+    final textTheme = Theme.of(context).textTheme;
 
-    return SafeArea(
-      child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: _onScanPressed,
-          child: const Icon(Icons.bluetooth_searching),
-        ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Text("Available Devices", textAlign: TextAlign.left, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))
-            ),
-            SizedBox(height: 4,),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _results.length,
-                itemBuilder: (context, index) {
-                  final device = _results[index].device;
-                  final id = device.remoteId.str;
-                  final isConnecting = connection.connectingId == id;
-                  final isConnected = connection.connectedId == id;
-      
-                  return ListTile(
-                    title: Text(
-                      device.advName.isNotEmpty
-                          ? device.advName
-                          : device.platformName.isNotEmpty
-                          ? device.platformName
-                          : 'Unknown device',
-                    ),
-                    subtitle: Text(id),
-                    trailing: isConnecting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(
-                            isConnected ? 'Connected' : 'Tap to connect',
-                            style: TextStyle(
-                              color: isConnected ? Colors.green : Colors.grey,
-                            ),
-                          ),
-                    onTap: isConnecting ? null : () => _onDeviceTap(device),
-                  );
-                },
+    final (title, hint) = _isScanning
+        ? (
+            'Scanning for Y-Bot...',
+            'Make sure your Y-Bot is powered on and in pairing mode.',
+          )
+        : _results.isEmpty
+        ? ('No Y-Bot found', 'Check it is powered on, then scan again.')
+        : ('Pick your Y-Bot', 'Tap a device to connect.');
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Bluetooth', style: textTheme.titleLarge),
+              const SizedBox(height: 32),
+
+              // Rings always pulse; tap to scan again
+              Center(
+                child: PulsingIcon(
+                  icon: Icons.bluetooth_rounded,
+                  onTap: _isScanning ? null : _onScanPressed,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: textTheme.titleMedium?.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                hint,
+                textAlign: TextAlign.center,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              Expanded(
+                child: ListView.separated(
+                  itemCount: _results.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final result = _results[index];
+                    final id = result.device.remoteId.str;
+
+                    return _DeviceCard(
+                      result: result,
+                      isConnecting: connection.connectingId == id,
+                      isConnected: connection.connectedId == id,
+                      onTap: () => _onDeviceTap(result.device),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              OutlinedButton(
+                onPressed: _isScanning ? _bt.stopScan : _onScanPressed,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  minimumSize: const Size.fromHeight(52),
+                  shape: const StadiumBorder(),
+                ),
+                child: Text(_isScanning ? 'Cancel' : 'Scan again'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeviceCard extends StatelessWidget {
+  final ScanResult result;
+  final bool isConnecting;
+  final bool isConnected;
+  final VoidCallback onTap;
+
+  const _DeviceCard({
+    required this.result,
+    required this.isConnecting,
+    required this.isConnected,
+    required this.onTap,
+  });
+
+  String get _name {
+    final device = result.device;
+    if (device.advName.isNotEmpty) return device.advName;
+    if (device.platformName.isNotEmpty) return device.platformName;
+    return 'Unknown device';
+  }
+
+  // Rough RSSI buckets: closer devices show more bars
+  IconData get _signalIcon {
+    if (result.rssi >= -60) return Icons.signal_cellular_alt_rounded;
+    if (result.rssi >= -75) return Icons.signal_cellular_alt_2_bar_rounded;
+    return Icons.signal_cellular_alt_1_bar_rounded;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Material(
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isConnected ? AppColors.primary : AppColors.border,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: isConnecting ? null : onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              const Icon(Icons.smart_toy_outlined, color: AppColors.primary),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _name,
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (isConnected)
+                      Text(
+                        'Connected',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (isConnecting)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                Icon(_signalIcon, color: AppColors.primary),
+            ],
+          ),
         ),
       ),
     );

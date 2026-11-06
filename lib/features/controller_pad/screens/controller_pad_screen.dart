@@ -89,8 +89,19 @@ class _ControllerPadScreenState extends ConsumerState<ControllerPadScreen> {
     super.dispose();
   }
 
-  Widget _commandButton(String label, String command) {
+  static const _steerColor = Color(0xFF1E88E5);
+  static const _forwardColor = Color(0xFF43A047);
+  static const _backwardColor = Color(0xFFFB8C00);
+  static const _brakeColor = Color(0xFFE53935);
+
+  Widget _commandButton(String label, String command, Color color) {
     return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: EdgeInsets.zero,
+      ),
       onPressed: rxCharacteristic == null
           ? null
           : () async {
@@ -108,31 +119,64 @@ class _ControllerPadScreenState extends ConsumerState<ControllerPadScreen> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _commandButton("Left", "motor:left:speed:70"),
-                  const SizedBox(height: 16),
-                  _commandButton("Backward", "motor:backward:speed:70"),
-                ],
+              SizedBox(
+                width: 96,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _commandButton(
+                        "Left",
+                        "motor:left:speed:100",
+                        _steerColor,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _commandButton(
+                        "Backward",
+                        "motor:backward:speed:100",
+                        _backwardColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _commandButton("Right", "motor:right:speed:70"),
-                      const SizedBox(width: 16),
-                      _commandButton("Brake", "motor:brake"),
-                    ],
+              const SizedBox(width: 24),
+              Expanded(
+                child: Center(
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 64,
+                    child: _commandButton("Brake", "motor:brake", _brakeColor),
                   ),
-                  const SizedBox(height: 16),
-                  _commandButton("Forward", "motor:forward:speed:70"),
-                ],
+                ),
+              ),
+              const SizedBox(width: 24),
+              SizedBox(
+                width: 96,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _commandButton(
+                        "Right",
+                        "motor:right:speed:100",
+                        _steerColor,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _commandButton(
+                        "Forward",
+                        "motor:forward:speed:100",
+                        _forwardColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

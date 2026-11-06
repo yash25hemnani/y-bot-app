@@ -8,7 +8,7 @@ class AppPermissionService {
 
   static final AppPermissionService instance = AppPermissionService._();
 
-  /// Android 12+ (API 31+) doesn't need location for BLE 
+  /// Android 12+ (API 31+) doesn't need location for BLE
   Future<bool> _needsLocationPermission() async {
     if (!Platform.isAndroid) return false;
     final info = await DeviceInfoPlugin().androidInfo;
