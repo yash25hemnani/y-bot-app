@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:y_bot_app/core/theme/app_colors.dart';
+import 'package:y_bot_app/core/theme/app_type.dart';
+import 'package:y_bot_app/core/widgets/status_lamp.dart';
 import 'package:y_bot_app/core/widgets/pulsing_icon.dart';
 import 'package:y_bot_app/features/bluetooth/providers/bluetooth_connection_provider.dart';
 import 'package:y_bot_app/features/bluetooth/services/bluetooth_service.dart';
@@ -215,7 +217,7 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Bluetooth', style: textTheme.titleLarge),
+              Text('Bluetooth', style: AppType.display),
               const SizedBox(height: 32),
 
               // Rings always pulse; tap to scan again
@@ -230,10 +232,7 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: textTheme.titleMedium?.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppType.name,
               ),
               const SizedBox(height: 8),
               Text(
@@ -309,44 +308,54 @@ class _DeviceCard extends StatelessWidget {
     return Icons.signal_cellular_alt_1_bar_rounded;
   }
 
+  String get _status {
+    if (isConnected) return 'Connected';
+    if (isConnecting) return 'Connecting';
+    return 'Tap to connect';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final lamp = isConnected
+        ? LampState.connected
+        : isConnecting
+        ? LampState.connecting
+        : LampState.idle;
 
     return Material(
       color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isConnected ? AppColors.primary : AppColors.border,
+          color: isConnected ? AppColors.primaryDark : Colors.transparent,
         ),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: isConnecting ? null : onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.fromLTRB(12, 14, 16, 14),
           child: Row(
             children: [
-              const Icon(Icons.smart_toy_outlined, color: AppColors.primary),
-              const SizedBox(width: 16),
+              StatusLamp(state: lamp),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       _name,
-                      style: textTheme.bodyLarge?.copyWith(
-                        color: AppColors.textPrimary,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppType.name.copyWith(fontSize: 18),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _status,
+                      style: AppType.style(
+                        size: 13,
+                        color: isConnected ? AppColors.primary : AppColors.textSecondary,
                       ),
                     ),
-                    if (isConnected)
-                      Text(
-                        'Connected',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: AppColors.primary,
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -357,7 +366,10 @@ class _DeviceCard extends StatelessWidget {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               else
-                Icon(_signalIcon, color: AppColors.primary),
+                Semantics(
+                  label: 'Signal strength',
+                  child: Icon(_signalIcon, color: AppColors.textSecondary),
+                ),
             ],
           ),
         ),

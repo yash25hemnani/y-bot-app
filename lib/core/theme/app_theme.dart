@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:y_bot_app/core/theme/app_colors.dart';
+import 'package:y_bot_app/core/theme/app_type.dart';
 
 class AppTheme {
   AppTheme._();
@@ -14,27 +15,18 @@ class AppTheme {
   // Pill buttons, as in the mockup (Cancel, Scan Again, Connect via WiFi).
   static const StadiumBorder _buttonShape = StadiumBorder();
 
-  static const TextTheme textTheme = TextTheme(
-    headlineMedium: TextStyle(
-      fontSize: 24,
-      fontWeight: FontWeight.w700,
-      color: AppColors.textPrimary,
-    ),
-    titleLarge: TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.w600,
-      color: AppColors.textPrimary,
-    ),
-    titleMedium: TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
-      color: AppColors.textPrimary,
-    ),
-    bodyLarge: TextStyle(fontSize: 16, color: AppColors.textPrimary),
-    bodyMedium: TextStyle(fontSize: 14, color: AppColors.textPrimary),
-    bodySmall: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-    labelLarge: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-    labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+  // Saira throughout (see AppType). Titles are wide; body text is normal width.
+  static final TextTheme textTheme = TextTheme(
+    displaySmall: AppType.display,
+    headlineMedium: AppType.style(size: 24, weight: 600, width: AppType.wide, height: 1.1),
+    titleLarge: AppType.style(size: 20, weight: 600, width: AppType.semiWide),
+    titleMedium: AppType.style(size: 16, weight: 600),
+    bodyLarge: AppType.style(size: 16),
+    bodyMedium: AppType.style(size: 14),
+    bodySmall: AppType.style(size: 12, color: AppColors.textSecondary),
+    labelLarge: AppType.style(size: 15, weight: 600),
+    labelMedium: AppType.style(size: 13, weight: 500),
+    labelSmall: AppType.style(size: 11, weight: 500),
   );
 
   static ThemeData get dark {
@@ -57,6 +49,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: AppType.family,
       brightness: Brightness.dark,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
@@ -148,7 +141,12 @@ class AppTheme {
               ? AppColors.primary
               : AppColors.surfaceRaised,
         ),
-        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+        // Off: an outlined dark track, like the panel's switch
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.transparent
+              : AppColors.borderStrong,
+        ),
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.primary,

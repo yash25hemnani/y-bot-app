@@ -70,6 +70,13 @@ flutter:
     - assets/images/
     - assets/icons/
 
+  # Saira: one variable font (weight + width axes), shared with the admin panel.
+  # Width is set per style with FontVariation('wdth', ...) in AppTheme.
+  fonts:
+    - family: Saira
+      fonts:
+        - asset: assets/fonts/Saira-Variable.ttf
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:y_bot_app/core/widgets/segmented_nav_bar.dart';
 import 'package:y_bot_app/features/bluetooth/screens/bluetooth_screen.dart';
-import 'package:y_bot_app/features/devices/screens/devices_screen.dart';
-import 'package:y_bot_app/features/history/screens/history_screen.dart';
 import 'package:y_bot_app/features/home/screens/home_screen.dart';
 import 'package:y_bot_app/features/settings/screens/settings_screen.dart';
 
@@ -18,8 +17,6 @@ class _RootScreenState extends State<RootScreen> {
   final List<Widget> _screens = const [
     HomeScreen(),
     BluetoothScreen(),
-    DevicesScreen(),
-    HistoryScreen(),
     SettingsScreen(),
   ];
 
@@ -27,35 +24,25 @@ class _RootScreenState extends State<RootScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: SegmentedNavBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
+        onSelected: (index) {
           setState(() => _currentIndex = index);
         },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
+        items: const [
+          SegmentedNavItem(
+            icon: Icons.home_outlined,
+            selectedIcon: Icons.home_rounded,
             label: "Home",
           ),
-          NavigationDestination(
-            icon: Icon(Icons.bluetooth_outlined),
-            selectedIcon: Icon(Icons.bluetooth),
+          SegmentedNavItem(
+            icon: Icons.bluetooth_outlined,
+            selectedIcon: Icons.bluetooth_rounded,
             label: 'Bluetooth',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.devices_outlined),
-            selectedIcon: Icon(Icons.devices),
-            label: 'Devices',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history),
-            label: 'History',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
+          SegmentedNavItem(
+            icon: Icons.settings_outlined,
+            selectedIcon: Icons.settings_rounded,
             label: 'Settings',
           ),
         ],

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:y_bot_app/core/theme/app_colors.dart';
+import 'package:y_bot_app/core/theme/app_type.dart';
 import 'package:y_bot_app/features/bluetooth/providers/bluetooth_connection_provider.dart';
 import 'package:y_bot_app/features/bluetooth/services/bluetooth_service.dart';
 
@@ -89,58 +91,85 @@ class _ControllerPadScreenState extends ConsumerState<ControllerPadScreen> {
     super.dispose();
   }
 
-  static const _steerColor = Color(0xFF1E88E5);
-  static const _forwardColor = Color(0xFF43A047);
-  static const _backwardColor = Color(0xFFFB8C00);
-  static const _brakeColor = Color(0xFFE53935);
+  // Control-desk pads: dark surfaces with teal arrows; Brake is the one red pad.
+  // Commands are unchanged.
+  Widget _pad(String label, String command, IconData icon, {bool danger = false}) {
+    final ready = rxCharacteristic != null;
+    final accent = !ready
+        ? AppColors.textDisabled
+        : danger
+        ? AppColors.error
+        : AppColors.primary;
 
-  Widget _commandButton(String label, String command, Color color) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        padding: EdgeInsets.zero,
+    return Material(
+      color: danger && ready ? AppColors.errorSurface : AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: danger && ready ? AppColors.error.withValues(alpha: 0.5) : AppColors.border),
       ),
-      onPressed: rxCharacteristic == null
-          ? null
-          : () async {
-              await rxCharacteristic!.write(command.codeUnits);
-            },
-      child: Text(label),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: !ready
+            ? null
+            : () async {
+                HapticFeedback.selectionClick();
+                await rxCharacteristic!.write(command.codeUnits);
+              },
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 32, color: accent),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: AppType.style(
+                  size: 15,
+                  weight: 600,
+                  width: AppType.semiWide,
+                  color: ready ? AppColors.textPrimary : AppColors.textDisabled,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final ready = rxCharacteristic != null;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Controller Pad')),
+      appBar: AppBar(
+        title: Text('Controller pad', style: AppType.style(size: 20, weight: 600, width: AppType.wide)),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: Text(
+                ready ? 'Ready' : 'Connect a robot to drive',
+                style: AppType.style(size: 13, color: ready ? AppColors.primary : AppColors.textSecondary),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(
-                width: 96,
+                width: 120,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: _commandButton(
-                        "Left",
-                        "motor:left:speed:100",
-                        _steerColor,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: _commandButton(
-                        "Backward",
-                        "motor:backward:speed:100",
-                        _backwardColor,
-                      ),
-                    ),
+                    Expanded(child: _pad("Left", "motor:left:speed:100", Icons.arrow_back_rounded)),
+                    const SizedBox(height: 12),
+                    Expanded(child: _pad("Backward", "motor:backward:speed:100", Icons.arrow_downward_rounded)),
                   ],
                 ),
               ),
@@ -149,32 +178,20 @@ class _ControllerPadScreenState extends ConsumerState<ControllerPadScreen> {
                 child: Center(
                   child: SizedBox(
                     width: double.infinity,
-                    height: 64,
-                    child: _commandButton("Brake", "motor:brake", _brakeColor),
+                    height: 88,
+                    child: _pad("Brake", "motor:brake", Icons.stop_rounded, danger: true),
                   ),
                 ),
               ),
               const SizedBox(width: 24),
               SizedBox(
-                width: 96,
+                width: 120,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: _commandButton(
-                        "Right",
-                        "motor:right:speed:100",
-                        _steerColor,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: _commandButton(
-                        "Forward",
-                        "motor:forward:speed:100",
-                        _forwardColor,
-                      ),
-                    ),
+                    Expanded(child: _pad("Right", "motor:right:speed:100", Icons.arrow_forward_rounded)),
+                    const SizedBox(height: 12),
+                    Expanded(child: _pad("Forward", "motor:forward:speed:100", Icons.arrow_upward_rounded)),
                   ],
                 ),
               ),
